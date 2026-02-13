@@ -2,7 +2,7 @@
 
 import express from "express";
 import { createNote, getNotes, updateNote, deleteNote } from "../controllers/noteController.js";
-import protect from "../middleware/authmiddelware.js";
+import protect from "../middleware/authMiddleware.js";
 
 const noteRoutes = express.Router();
 
