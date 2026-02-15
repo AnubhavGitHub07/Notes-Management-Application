@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧠 Notiq AI
+<img src="assets/notiq-logo.png" alt="Notiq AI Logo" width="400"/>
+
+# Notiq AI
 
 ### Your AI-Powered Smart Notes Engine
 
