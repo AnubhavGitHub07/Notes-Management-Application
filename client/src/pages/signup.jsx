@@ -83,7 +83,7 @@ function Signup() {
             <div className="signup-card">
                 <div className="card-header">
                     <div className="logo-icon">
-                        <img src="/notespace-logo.png" alt="NoteSpace" className="logo-img" />
+                        <img src="/notiq-logo-auth.png" alt="Notiq AI" className="logo-img" />
                     </div>
                     <h1>Create Account</h1>
                     <p>Start your journey with us today</p>

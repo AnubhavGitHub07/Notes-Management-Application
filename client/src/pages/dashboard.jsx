@@ -5,31 +5,45 @@ import {
     HiOutlineClock,
     HiOutlineSearch,
     HiOutlinePlus,
-    HiOutlinePencil,
-    HiOutlineTrash,
-    HiOutlineLogout,
-    HiOutlineX,
     HiOutlineDocumentText,
     HiOutlineCalendar,
+    HiOutlineLogout,
+    HiOutlineSun,
+    HiOutlineMoon,
+    HiOutlineTag,
+    HiOutlinePencil,
+    HiOutlineTrash,
+    HiOutlineX
 } from "react-icons/hi";
+
 import {
     HiOutlineSparkles,
     HiOutlineDocumentPlus,
 } from "react-icons/hi2";
+
 import API from "../api/axios";
+import { useTheme } from "../context/themeContext";
 import "../styles/dashboard.css";
 
 function Dashboard() {
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { theme, toggleTheme } = useTheme();
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [formTitle, setFormTitle] = useState("");
     const [formContent, setFormContent] = useState("");
+    const [formCategory, setFormCategory] = useState("General");
+    const [formTopic, setFormTopic] = useState("");
+    const [formDifficulty, setFormDifficulty] = useState("Medium");
+    const [formTags, setFormTags] = useState("");
     const [formError, setFormError] = useState("");
     const [saving, setSaving] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState("All");
+
+    const CATEGORIES = ["General", "DSA", "Web Dev", "DevOps", "System Design", "Database", "AI/ML", "Other"];
 
     const navigate = useNavigate();
 
@@ -58,14 +72,25 @@ function Dashboard() {
 
     // Filtered notes
     const filteredNotes = useMemo(() => {
-        if (!searchQuery.trim()) return notes;
-        const q = searchQuery.toLowerCase();
-        return notes.filter(
-            (n) =>
-                n.title.toLowerCase().includes(q) ||
-                n.content.toLowerCase().includes(q)
-        );
-    }, [notes, searchQuery]);
+        let filtered = notes;
+
+        // Apply Category Filter
+        if (selectedCategory !== "All") {
+            filtered = filtered.filter((n) => n.category === selectedCategory);
+        }
+
+        // Apply Search Filter
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            filtered = filtered.filter(
+                (n) =>
+                    n.title.toLowerCase().includes(q) ||
+                    n.content.toLowerCase().includes(q)
+            );
+        }
+
+        return filtered;
+    }, [notes, searchQuery, selectedCategory]);
 
     // Stats
     const totalNotes = notes.length;
@@ -106,6 +131,10 @@ function Dashboard() {
         setEditingNote(null);
         setFormTitle("");
         setFormContent("");
+        setFormCategory("General");
+        setFormTopic("");
+        setFormDifficulty("Medium");
+        setFormTags("");
         setFormError("");
         setShowModal(true);
     };
@@ -116,6 +145,10 @@ function Dashboard() {
         setEditingNote(note);
         setFormTitle(note.title);
         setFormContent(note.content);
+        setFormCategory(note.category || "General");
+        setFormTopic(note.topic || "");
+        setFormDifficulty(note.difficulty || "Medium");
+        setFormTags(note.tags ? note.tags.join(", ") : "");
         setFormError("");
         setShowModal(true);
     };
@@ -131,19 +164,27 @@ function Dashboard() {
             setSaving(true);
             setFormError("");
 
+            const tagsArray = formTags
+                .split(",")
+                .map((t) => t.trim())
+                .filter((t) => t.length > 0);
+
+            const noteData = {
+                title: formTitle,
+                content: formContent,
+                category: formCategory,
+                topic: formTopic || undefined,
+                difficulty: formDifficulty,
+                tags: tagsArray,
+            };
+
             if (editingNote) {
-                const res = await API.put(`/notes/${editingNote._id}`, {
-                    title: formTitle,
-                    content: formContent,
-                });
+                const res = await API.put(`/notes/${editingNote._id}`, noteData);
                 setNotes((prev) =>
                     prev.map((n) => (n._id === editingNote._id ? res.data : n))
                 );
             } else {
-                const res = await API.post("/notes", {
-                    title: formTitle,
-                    content: formContent,
-                });
+                const res = await API.post("/notes", noteData);
                 setNotes((prev) => [res.data, ...prev]);
             }
 
@@ -182,9 +223,9 @@ function Dashboard() {
             <aside className="dash-sidebar">
                 <div className="sidebar-brand">
                     <div className="brand-icon">
-                        <img src="/notespace-logo.png" alt="NoteSpace" className="brand-logo-img" />
+                        <img src="/notiq-logo.png" alt="Notiq AI" className="brand-logo-img" />
                     </div>
-                    <span className="brand-name">NoteSpace</span>
+                    <span className="brand-name">Notiq AI</span>
                 </div>
 
                 <nav className="sidebar-nav">
@@ -245,6 +286,9 @@ function Dashboard() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
+                        <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Theme">
+                            {theme === 'dark' ? <HiOutlineSun /> : <HiOutlineMoon />}
+                        </button>
                         <button className="new-note-btn" onClick={openNewNote}>
                             <HiOutlinePlus />
                             New Note
@@ -281,6 +325,25 @@ function Dashboard() {
                             <div className="stat-label">This Week</div>
                         </div>
                     </div>
+                </div>
+
+                {/* Category Filters */}
+                <div className="category-filters">
+                    <button
+                        className={`filter-pill ${selectedCategory === "All" ? "active" : ""}`}
+                        onClick={() => setSelectedCategory("All")}
+                    >
+                        All
+                    </button>
+                    {CATEGORIES.map((cat) => (
+                        <button
+                            key={cat}
+                            className={`filter-pill ${selectedCategory === cat ? "active" : ""}`}
+                            onClick={() => setSelectedCategory(cat)}
+                        >
+                            {cat}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Notes Area */}
@@ -320,12 +383,34 @@ function Dashboard() {
                                         setEditingNote(note);
                                         setFormTitle(note.title);
                                         setFormContent(note.content);
+                                        setFormCategory(note.category || "General");
+                                        setFormTopic(note.topic || "");
+                                        setFormDifficulty(note.difficulty || "Medium");
+                                        setFormTags(note.tags ? note.tags.join(", ") : "");
                                         setFormError("");
                                         setShowModal(true);
                                     }}
                                 >
+                                    <div className="note-meta-badges">
+                                        {note.category && note.category !== "General" && (
+                                            <span className="badge badge-category">{note.category}</span>
+                                        )}
+                                        {note.difficulty && (
+                                            <span className={`badge badge-${note.difficulty.toLowerCase()}`}>{note.difficulty}</span>
+                                        )}
+                                    </div>
                                     <h3 className="note-title">{note.title}</h3>
                                     <p className="note-content">{note.content}</p>
+                                    {note.tags && note.tags.length > 0 && (
+                                        <div className="note-tags">
+                                            {note.tags.map((tag, idx) => (
+                                                <span key={idx} className="tag-chip">
+                                                    <HiOutlineTag size={10} />
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                     <div className="note-footer">
                                         <span className="note-date">
                                             <HiOutlineClock size={13} />
@@ -395,6 +480,61 @@ function Dashboard() {
                                     value={formContent}
                                     onChange={(e) => setFormContent(e.target.value)}
                                 />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="note-category">Category</label>
+                                    <select
+                                        id="note-category"
+                                        value={formCategory}
+                                        onChange={(e) => setFormCategory(e.target.value)}
+                                    >
+                                        {CATEGORIES.map((cat) => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="note-topic">Topic</label>
+                                    <input
+                                        id="note-topic"
+                                        type="text"
+                                        placeholder="e.g. Searching, React Hooks..."
+                                        value={formTopic}
+                                        onChange={(e) => setFormTopic(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Difficulty</label>
+                                    <div className="difficulty-selector">
+                                        {["Easy", "Medium", "Hard"].map((level) => (
+                                            <button
+                                                key={level}
+                                                type="button"
+                                                className={`diff-btn diff-${level.toLowerCase()} ${formDifficulty === level ? "active" : ""}`}
+                                                onClick={() => setFormDifficulty(level)}
+                                            >
+                                                {level}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="note-tags">Tags</label>
+                                    <input
+                                        id="note-tags"
+                                        type="text"
+                                        placeholder="comma separated: array, search"
+                                        value={formTags}
+                                        onChange={(e) => setFormTags(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div className="modal-actions">

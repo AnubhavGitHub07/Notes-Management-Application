@@ -71,7 +71,7 @@ function Login() {
       <div className="login-card">
         <div className="card-header">
           <div className="logo-icon">
-            <img src="/notespace-logo.png" alt="NoteSpace" className="logo-img" />
+            <img src="/notiq-logo-auth.png" alt="Notiq AI" className="logo-img" />
           </div>
           <h1>Welcome Back</h1>
           <p>Sign in to continue to your dashboard</p>

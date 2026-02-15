@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler";
 
 // Create Note
 const createNote = asyncHandler(async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, category, topic, difficulty, tags, } = req.body;
 
     if (!title || !content) {
         res.status(400);
@@ -14,6 +14,10 @@ const createNote = asyncHandler(async (req, res) => {
         title,
         content,
         user: req.user._id,
+        category,
+        topic,
+        difficulty,
+        tags,
     });
 
     res.status(201).json(note);
@@ -32,7 +36,7 @@ const getNotes = asyncHandler(async (req, res) => {
 // Update Note
 
 const updateNote = asyncHandler(async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, category, topic, difficulty, tags } = req.body;
 
     const note = await Note.findById(req.params.id);
 
@@ -50,6 +54,10 @@ const updateNote = asyncHandler(async (req, res) => {
 
     note.title = title || note.title;
     note.content = content || note.content;
+    if (category !== undefined) note.category = category;
+    if (topic !== undefined) note.topic = topic;
+    if (difficulty !== undefined) note.difficulty = difficulty;
+    if (tags !== undefined) note.tags = tags;
 
     const updatedNote = await note.save();
 

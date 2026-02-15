@@ -4,13 +4,13 @@ import mongoose from "mongoose";
 
 const noteSchema = new mongoose.Schema(
     {
-        title:{
+        title: { 
             type: String,
             required: true,
             trim: true,
         },
 
-        content:{
+        content: { 
             type: String,
             required: true,
         },
@@ -20,12 +20,35 @@ const noteSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+
+
+        category: {
+            type: String,
+            default: "General",
+        },
+
+        topic: {
+            type: String,
+            default: "Miscellaneous",
+        },
+
+        difficulty: {
+            type: String,
+            enum: ["Easy", "Medium", "Hard"],
+            default: "Medium",
+        },
+
+        tags: [
+            {
+                type: String,
+            },
+        ],
     },
     {
         timestamps: true,
     }
 );
 
-const Note = mongoose.model("Note" , noteSchema); // create Note model
+const Note = mongoose.model("Note", noteSchema); // create Note model
 
 export default Note; // export note model
